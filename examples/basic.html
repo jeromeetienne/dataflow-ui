@@ -18,8 +18,9 @@
 	}
 </style>
 <body><script>	
+;(function(){
 	var graph	= new Dataflow.Graph()
-
+window.graph	= graph
 	//////////////////////////////////////////////////////////////////////////////////
 	//		Comment								//
 	//////////////////////////////////////////////////////////////////////////////////
@@ -116,4 +117,7 @@ console.log('render graph', graph)
 		console.log('window resize')
 		renderer.render(graph)
 	}, false)
+
+})()
+
 </script></body>

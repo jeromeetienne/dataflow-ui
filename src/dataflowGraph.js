@@ -22,6 +22,31 @@ Dataflow.Graph.prototype.getNodeById = function(nodeId) {
 	return undefined
 };
 
+
+
+Dataflow.Graph.prototype.findInputByUUID = function(uuid){
+	for(var i = 0; i < this.nodes.length; i++){
+		var node	= this.nodes[i]
+		for(var j = 0; j < node._inputs.length; j++){
+			var input	= node._inputs[j]
+			if( input.uuid === uuid )	return input
+		}
+	}
+}
+
+
+Dataflow.Graph.prototype.findOutputByUUID = function(uuid){
+	for(var i = 0; i < this.nodes.length; i++){
+		var node	= this.nodes[i]
+		for(var j = 0; j < node._outputs.length; j++){
+			var output	= node._outputs[j]
+			if( output.uuid === uuid )	return output
+		}
+	}
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////////////
 //		handle nodes
 //////////////////////////////////////////////////////////////////////////////////

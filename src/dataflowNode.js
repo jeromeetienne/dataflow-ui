@@ -38,6 +38,7 @@ Dataflow.Node.prototype.findOutputByLabel = function(label){
 	}
 }
 
+
 Dataflow.Node.prototype.set	= function(options){
 	var node	= this
 

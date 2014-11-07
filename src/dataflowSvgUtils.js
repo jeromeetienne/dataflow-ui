@@ -11,8 +11,9 @@ Dataflow.Renderer.SvgUtils.prototype.clear	= function() {
 	}
 }
 
-Dataflow.Renderer.SvgUtils.prototype.drawLine	= function(x1, y1, x2, y2){
+Dataflow.Renderer.SvgUtils.prototype.drawLine	= function(x1, y1, x2, y2, color){
 	var svgContainer	= this.svgContainer
+	color	= color	!== undefined ? color	: 'orange'
 
 	// build the element itself
 	var svgNS	= "http://www.w3.org/2000/svg";
@@ -38,7 +39,7 @@ Dataflow.Renderer.SvgUtils.prototype.drawLine	= function(x1, y1, x2, y2){
 
 	// set the style
 	svgElement.style.fill		= 'none'
-	svgElement.style.stroke		= 'orange'
+	svgElement.style.stroke		= color
 	svgElement.style.strokeWidth	= 5
 
 	// add it to the svg container

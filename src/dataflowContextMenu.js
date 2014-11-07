@@ -32,29 +32,23 @@ Dataflow.ContextMenu	= function(options, domElement, callback){
 
 		event.stopPropagation()
 
-console.log('mouseDown event', event)
 		// compute the position of the contextMenu
 		var boundingRect= domElement.getBoundingClientRect();
 		var positionX	= event.clientX - boundingRect.left
 		var positionY	= event.clientY - boundingRect.top
 
-
 		// toggle menu visibility
 		if( menuElement.style.display === 'block' ){
-// console.log('hide menu')
-
 			menuElement.style.display	= 'none';
 		}else{
-// console.log('show menu')
 			menuElement.style.display	= 'block';
 			// TODO make it 
 			menuElement.style.left	= positionX+'px';
 			menuElement.style.top	= positionY+'px';
 		}
 	}
-
+	// 
 	document.body.addEventListener('mousedown', function(){
-		// console
 		menuElement.style.display	= 'none';
 	}, false)
 

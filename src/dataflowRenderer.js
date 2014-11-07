@@ -3,6 +3,7 @@ var Dataflow	= Dataflow	|| {}
 Dataflow.Renderer	= function(){
 	var renderer	= this;
 
+	renderer.dataTransfer	= {}
 
 	var domElement	= document.createElement('div')
 	this.domElement	= domElement
@@ -13,40 +14,78 @@ Dataflow.Renderer	= function(){
 	// var svgElement	= document.createElement('svg')
 	var svgNS	= "http://www.w3.org/2000/svg";
 	var svgContainer= document.createElementNS(svgNS, 'svg')
-	this.svgContainer	= svgContainer
+	renderer.svgContainer	= svgContainer
 	svgContainer.style.width	= '100%'
 	svgContainer.style.height	= '100%'
 	svgContainer.style.position	= 'absolute'
 	// svgContainer.style.zIndex	= '100'
-	this.domElement.appendChild(svgContainer)
+	renderer.domElement.appendChild(svgContainer)
 
 	var nodesContainer	= document.createElement('div')
-	this.nodesContainer	= nodesContainer
+	renderer.nodesContainer	= nodesContainer
 	nodesContainer.style.width	= '100%'
 	nodesContainer.style.height	= '100%'
 	nodesContainer.style.position	= 'absolute'
-	this.domElement.appendChild(nodesContainer)
+	renderer.domElement.appendChild(nodesContainer)
+
+
+
+	renderer.svgUtils	= new Dataflow.Renderer.SvgUtils(svgContainer)
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//		Bind Events
 	//////////////////////////////////////////////////////////////////////////////////
-	document.addEventListener("dragstart", function( event ) {
-		console.log('document dragstart')
-	})
 	renderer.domElement.addEventListener('dragenter', function(event){
 		// console.log('dragenter', event)
 	}, false);
 	renderer.domElement.addEventListener('dragover', function(event){
 		event.preventDefault();
-		setNodePositionFromEvent(event)
+
+		var dataTransfer	= renderer.dataTransfer
+		if( dataTransfer.type === 'draggingNode' ){
+			onDraggingNode(event)
+		}else if( dataTransfer.type === 'draggingOutput' ){
+			onDraggingOutput(event)
+		}
 	}, false);
 	renderer.domElement.addEventListener('drop', function(event){
 		event.preventDefault();
 		event.stopPropagation(); 
-		setNodePositionFromEvent(event)
+
+		var dataTransfer	= renderer.dataTransfer
+		if( dataTransfer.type === 'draggingNode' ){
+			onDraggingNode(event)
+			renderer.dataTransfer	= {}
+		}else if( dataTransfer.type === 'draggingOutput' ){
+			renderer.render(graph)
+		}
+
 	}, false);
 
-	function setNodePositionFromEvent(event){
+	function onDraggingOutput(event){
+
+
+		// render to get the new position
+		renderer.render(graph)	
+
+		var dataTransfer= renderer.dataTransfer
+		var outputUUID	= dataTransfer.outputUUID
+		var output	= graph.findOutputByUUID(outputUUID)
+		// compute x1, y1
+		var node	= output.node
+		var domElement	= node.domElement.querySelector('.output-'+output.uuid)
+		var boundingBox	= domElement.getBoundingClientRect()
+		var x1		= boundingBox.right
+		var y1		= boundingBox.top + boundingBox.height/2
+
+		// compute x2,y2
+		var x2		= event.x
+		var y2		= event.y
+		// actual drawLine
+		renderer.svgUtils.drawLine(x1,y1,x2,y2, 'cyan')
+	}
+
+	function onDraggingNode(event){
 		var domId	= renderer.dataTransfer.domId
 		var offsetX	= renderer.dataTransfer.offsetX
 		var offsetY	= renderer.dataTransfer.offsetY
@@ -54,13 +93,13 @@ Dataflow.Renderer	= function(){
 		var domElement	= document.querySelector('#'+domId)
 		var nodeId	= parseInt(domElement.dataset.nodeId)
 		var node	= graph.getNodeById(nodeId)
-
+// TODO here graph isnt defined. this is a global due to index.html
 		var boundingBox	= domElement.getBoundingClientRect()
 
 		node.x	= (event.x-offsetX+boundingBox.width /2) / window.innerWidth
 		node.y	= (event.y-offsetY+boundingBox.height/2) / window.innerHeight
 
-		// rerender to get the new position
+		// render to get the new position
 		renderer.render(graph)	
 	}
 }
@@ -179,6 +218,7 @@ Dataflow.Renderer.prototype._updateNodeElement = function(graph, node){
 
 	node._inputs.forEach(function(input){
 		var inputEl	= document.createElement('div')
+		inputEl.setAttribute('draggable', 'true')
 		inputEl.classList.add('input')
 		inputEl.classList.add('input-'+input.uuid)
 		inputEl.innerHTML	= '- '+input.label
@@ -193,8 +233,42 @@ Dataflow.Renderer.prototype._updateNodeElement = function(graph, node){
 		})
 		console.log('menuElement', ioContextMenu.menuElement)
 		inputEl.appendChild(ioContextMenu.menuElement)
+
+
+		//////////////////////////////////////////////////////////////////////////////////
+		//		handle Dragging for creation
+		//////////////////////////////////////////////////////////////////////////////////
+		inputEl.addEventListener('dragstart', function(event){
+			event.stopPropagation()
+			event.dataTransfer.effectAllowed = 'move';
+
+			var dataTransfer	= {}
+			renderer.dataTransfer	= dataTransfer
+			dataTransfer.type	= 'draggingInput'
+			dataTransfer.inputUUID	= input.uuid
+		}, false)
+
+
+		inputEl.addEventListener('drop', function(event){
+			event.preventDefault();
+			event.stopPropagation(); 
+			var dataTransfer	= renderer.dataTransfer
+			if( dataTransfer.type === 'draggingOutput' ){
+				renderer.dataTransfer	= {}
+				var output	= graph.findOutputByUUID(dataTransfer.outputUUID)
+				onCreateNewLink(output, input)
+			}
+		}, false);
 	})
 
+	function onCreateNewLink(output, input){
+		console.log('createNewlink', arguments)
+		var link	= new Dataflow.Link().attach(output, input)
+		graph.addLink(link)
+
+		// render the graph
+		renderer.render(graph)		
+	}
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//		Inputs
@@ -222,14 +296,30 @@ Dataflow.Renderer.prototype._updateNodeElement = function(graph, node){
 		outputEl.appendChild(ioContextMenu.menuElement)
 
 
+		//////////////////////////////////////////////////////////////////////////////////
+		//		handle Dragging for creation
+		//////////////////////////////////////////////////////////////////////////////////
 		outputEl.addEventListener('dragstart', function(event){
-			console.log('drag from output')
 			event.stopPropagation()
 			event.dataTransfer.effectAllowed = 'move';
 
 			var dataTransfer	= {}
 			renderer.dataTransfer	= dataTransfer
-		}, true)
+			dataTransfer.type	= 'draggingOutput'
+			dataTransfer.outputUUID	= output.uuid
+		}, false)
+
+		outputEl.addEventListener('drop', function(event){
+			event.preventDefault();
+			event.stopPropagation(); 
+			var dataTransfer	= renderer.dataTransfer
+			if( dataTransfer.type === 'draggingInput' ){
+				renderer.dataTransfer	= {}
+				var input	= graph.findInputByUUID(dataTransfer.inputUUID)
+				onCreateNewLink(output, input)
+			}
+		}, false);
+
 
 	})
 
@@ -239,7 +329,7 @@ Dataflow.Renderer.prototype._updateNodeElement = function(graph, node){
 	//		Comment								//
 	//////////////////////////////////////////////////////////////////////////////////
 	
-	nodeEl.addEventListener('dragstart', onNodeDragStart, true);
+	nodeEl.addEventListener('dragstart', onNodeDragStart, false);
 	function onNodeDragStart(event){
 // return
 		var domElement	= this;
@@ -252,6 +342,7 @@ Dataflow.Renderer.prototype._updateNodeElement = function(graph, node){
 
 		var dataTransfer	= {}
 		renderer.dataTransfer	= dataTransfer
+		dataTransfer.type	= 'draggingNode'
 		dataTransfer.domId	= domElement.id
 		dataTransfer.offsetX	= event.offsetX
 		dataTransfer.offsetY	= event.offsetY
