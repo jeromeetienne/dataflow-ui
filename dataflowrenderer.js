@@ -147,7 +147,7 @@ console.log('updateNode', node.title)
 			ctx.moveTo( 0,  0);
 			ctx.lineTo(20, 20);
 			ctx.moveTo( 0, 20);
-			ctx.lineTo(20,  0);
+			ctx.lineTo(20,  0)
 			ctx.strokeStyle = '#FFF';
 			// ctx.stroke();
 
