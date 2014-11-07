@@ -1,0 +1,195 @@
+<!doctype html>
+<style>
+	/* Make body fullpage */
+	html, body{
+		margin: 0;
+		height: 100%;
+	}
+	body {
+		font-family: Helvetica, Arial, sans-serif;
+		/*background-color: #222;*/
+
+		/* remove user select */
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+
+		background-color: #222;
+	}
+	.node {
+		position: absolute;
+		background-color: #444;
+
+		color: #aaa;
+
+		padding: 5px;
+		border-radius: 3px;
+		
+
+		min-width: 150px;
+	}
+	.node .title {
+		text-align	: center;
+		margin-bottom	: 5px;
+		border-bottom	: #888 solid 1px;
+
+	}
+	.node .inputs {
+		font-size	: 60%;
+		float		: left;
+	}
+	.node .outputs {
+		font-size	: 60%;
+		float		: right;
+	}
+</style>
+<body>
+<svg width="100%" height="100%"></svg>
+<script>
+	function clearSvg(){
+		var container	= document.querySelector('svg')
+		while (container.firstChild) {
+			container.removeChild(container.firstChild);
+		}		
+	}
+	function addSvgLink(x1, y1, x2, y2){
+		// build the element itself
+		var svgNS	= "http://www.w3.org/2000/svg";
+		var svgElement	= document.createElementNS(svgNS, 'path')
+		// build the 'd' drawning command
+		var commands	= []
+		commands.push('M'+x1+','+y1)
+		var middleX	= (x1+x2)/2
+		commands.push('C'+middleX+','+y1)
+		commands.push(middleX+','+y2)
+		commands.push(x2+','+y2)
+		svgElement.setAttribute('d', commands.join(' '))
+
+		// set the style
+		svgElement.style.fill		= 'none'
+		svgElement.style.stroke		= 'orange'
+		svgElement.style.strokeWidth	= 5
+
+		// add it to the svg container
+		var container	= document.querySelector('svg')
+		container.appendChild(svgElement)
+	}
+
+	// addSvgLine(50, 50, 300, 100)
+	clearSvg()
+	addSvgLink(50, 50, window.innerWidth/2, window.innerHeight/2)
+
+
+	var nodesCounter	= 0
+	function makeNodeElement(){
+		var nodeEl	= document.createElement('div')
+
+		nodeEl.classList.add('node')
+		nodeEl.id	= 'node-'+(++nodesCounter)
+		nodeEl.setAttribute('draggable', 'true')
+
+
+		var titleEl	= document.createElement('div')	
+		titleEl.classList.add('title')
+		titleEl.innerText	= 'superNode'
+		nodeEl.appendChild(titleEl)
+
+		//////////////////////////////////////////////////////////////////////////////////
+		//		Inputs
+		//////////////////////////////////////////////////////////////////////////////////
+		var inputsEl	= document.createElement('div')
+		inputsEl.classList.add('inputs')
+		nodeEl.appendChild(inputsEl)
+
+		var inputEl	= document.createElement('div')
+		inputEl.classList.add('input')
+		inputEl.innerHTML	= '- superIn'
+		inputsEl.appendChild(inputEl)
+
+		//////////////////////////////////////////////////////////////////////////////////
+		//		Inputs
+		//////////////////////////////////////////////////////////////////////////////////
+		var outputsEl	= document.createElement('div')
+		outputsEl.classList.add('outputs')
+		nodeEl.appendChild(outputsEl)
+
+		var outputEl	= document.createElement('div')
+		outputEl.classList.add('output')
+		outputEl.innerText	= 'superOut -'
+		outputsEl.appendChild(outputEl)
+
+
+
+		nodeEl.addEventListener('dragstart', function(event){
+			var domElement	= this;
+			console.log('dragstart', event, domElement.innerText)
+			// event.dataTransfer.dropEffect = 'move';
+			event.dataTransfer.effectAllowed = 'all';
+
+			event.stopPropagation();
+			event.dataTransfer.setData('domId', domElement.id);
+
+			var boundingBox	= domElement.getBoundingClientRect();
+			console.log('boundingBox', boundingBox)
+		}, false);
+
+		return nodeEl
+	}
+
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		bind event for dragdrop
+	//////////////////////////////////////////////////////////////////////////////////
+
+	document.body.addEventListener('dragenter', function(event){
+		console.log('dragenter', event)
+	}, false);
+	document.body.addEventListener('dragover', function(event){
+		console.log('dragover', event)
+		event.preventDefault();		// Necessary. Allows us to drop.
+
+
+	}, false);
+	document.body.addEventListener('drop', function(event){
+		console.log('drop', event)
+		event.stopPropagation(); 
+		
+		// move the domElement
+		// TODO is that possible to do that via dropEffect ? 
+		// - i tried and failed. 
+		var domId	= event.dataTransfer.getData('domId');
+		var domElement	= document.querySelector('#'+domId)
+		domElement.style.left	= event.x + 'px'
+		domElement.style.top	= event.y + 'px'
+		console.dir(domElement)
+
+		var domElement	= document.querySelector('#'+domId+' .output')
+		var boundingBox	= domElement.getBoundingClientRect();
+		console.log('boundingBox', boundingBox)
+
+
+		var x1	= 1600
+		var y1	= 50
+		var x2	= event.x
+		var y2	= event.y
+
+		var x2	= boundingBox.right
+		var y2	= boundingBox.top+boundingBox.height/2
+
+		clearSvg()
+		addSvgLink(x1,y1,x2,y2)
+	}, false);
+	
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		bind event for dragdrop
+	//////////////////////////////////////////////////////////////////////////////////
+
+	var domElement	= makeNodeElement()
+	domElement.style.left	= '100px'
+	domElement.style.top	= '200px'
+	document.body.appendChild(domElement)
+</script></body>

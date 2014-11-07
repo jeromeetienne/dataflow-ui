@@ -1,0 +1,105 @@
+<!doctype html>
+<script src='../dataflowRenderer.js'></script>
+<script src='../dataflowNode.js'></script>
+<script src='../dataflowUtils.js'></script>
+<style>
+	/* Make body fullpage */
+	html, body{
+		margin: 0;
+		height: 100%;
+	}
+</style>
+<link src='../dataflow.css'>
+<link rel="stylesheet" href='../dataflow.css' />
+<body><script>	
+	var graph	= new Dataflow.Graph()
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Comment								//
+	//////////////////////////////////////////////////////////////////////////////////
+	var node	= new Dataflow.Node()
+	node.needsUpdate= true
+
+	node.title	= 'superTitle1'
+	node.x		= 0.2
+	node.y		= 0.2
+
+	var input	= new Dataflow.Input(node)
+	input.label	= 'hyperInput1'
+	node.addInput(input)
+
+	var output	= new Dataflow.Output(node)
+	output.label	= 'hyperOutput1'
+	node.addOutput(output)
+
+	var firstNode	= node
+	graph.addNode(firstNode)
+
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Comment								//
+	//////////////////////////////////////////////////////////////////////////////////
+	var node	= new Dataflow.Node()
+	node.needsUpdate= true
+
+	node.title	= 'superTitle2'
+	node.x		= 0.5
+	node.y		= 0.5
+
+	var input	= new Dataflow.Input(node)
+	input.label	= 'hyperInput2'
+	node.addInput(input)
+
+	var output	= new Dataflow.Output(node)
+	output.label	= 'hyperOutput2'
+	node.addOutput(output)
+
+	var secondNode	= node
+	graph.addNode(secondNode)
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Comment								//
+	//////////////////////////////////////////////////////////////////////////////////
+	var node	= new Dataflow.Node()
+	node.set({
+		title	: 'superTitle3',
+		x	: 0.8,
+		y	: 0.2,
+		inputs	: [
+			'hyperInput30',
+			'hyperInput3',
+			'hyperInput32',
+		],
+		outputs	: [
+			'hyperOutput3'
+		],
+	})
+	graph.addNode(node)
+	var thirdNode	= node
+console.log('thirdNode', graph)
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Comment								//
+	//////////////////////////////////////////////////////////////////////////////////
+
+	var output	= firstNode.getOutputByLabel('hyperOutput1')
+	var input	= secondNode.getInputByLabel('hyperInput2')
+	var link	= new Dataflow.Link().attach(output, input)
+	graph.addLink(link)
+
+	var output	= secondNode.getOutputByLabel('hyperOutput2')
+	var input	= thirdNode.getInputByLabel('hyperInput3')
+	var link	= new Dataflow.Link().attach(output, input)
+	graph.addLink(link)
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Comment								//
+	//////////////////////////////////////////////////////////////////////////////////
+
+	// render the graph
+	var renderer	= new Dataflow.Renderer()
+	document.body.appendChild(renderer.domElement)
+
+	renderer.render(graph)
+console.log('render graph', graph)
+</script></body>

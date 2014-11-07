@@ -1,0 +1,39 @@
+.dataflowContainer {
+	font-family: Helvetica, Arial, sans-serif;
+
+	/* remove user select */
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+
+	background-color: #222;
+}
+.node {
+	position: absolute;
+	background-color: #444;
+
+	color: #aaa;
+
+	padding: 5px;
+	border-radius: 3px;
+	
+
+	min-width: 150px;
+}
+.node .title {
+	text-align	: center;
+	margin-bottom	: 5px;
+	border-bottom	: #888 solid 1px;
+
+}
+.node .inputs {
+	font-size	: 60%;
+	float		: left;
+}
+.node .outputs {
+	font-size	: 60%;
+	float		: right;
+}
