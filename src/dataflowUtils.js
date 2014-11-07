@@ -2,6 +2,9 @@ var Dataflow	= Dataflow	|| {}
 
 Dataflow.Utils	= {}
 
+/**
+ * directly copied from three.js one
+ */
 Dataflow.Utils.generateUUID	= (function () {
 	// http://www.broofa.com/Tools/Math.uuid.htm
 	var chars	= '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'.split( '' );

@@ -38,7 +38,12 @@
 	font-size	: 70%;
 	float		: left;
 }
+.node .input:hover, .node .output:hover {
+	color	: #fff;
+}
 .node .outputs {
 	font-size	: 70%;
 	float		: right;
 }
+
+

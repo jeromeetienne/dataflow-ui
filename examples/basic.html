@@ -1,7 +1,15 @@
 <!doctype html>
-<script src='../dataflowRenderer.js'></script>
-<script src='../dataflowNode.js'></script>
-<script src='../dataflowUtils.js'></script>
+<script src='../src/dataflowRenderer.js'></script>
+<script src='../src/dataflowSvgUtils.js'></script>
+<script src='../src/dataflowContextMenu.js'></script>
+<script src='../src/dataflowNode.js'></script>
+<script src='../src/dataflowInput.js'></script>
+<script src='../src/dataflowOutput.js'></script>
+<script src='../src/dataflowLink.js'></script>
+<script src='../src/dataflowGraph.js'></script>
+<script src='../src/dataflowUtils.js'></script>
+<link rel="stylesheet" href='../css/dataflow.css' />
+<link rel="stylesheet" href='../css/dataflowContextMenu.css' />
 <style>
 	/* Make body fullpage */
 	html, body{
@@ -9,8 +17,6 @@
 		height: 100%;
 	}
 </style>
-<link src='../dataflow.css'>
-<link rel="stylesheet" href='../dataflow.css' />
 <body><script>	
 	var graph	= new Dataflow.Graph()
 
@@ -101,5 +107,13 @@ console.log('thirdNode', graph)
 	document.body.appendChild(renderer.domElement)
 
 	renderer.render(graph)
+	// render a second time
+	renderer.render(graph)
 console.log('render graph', graph)
+	
+	// handle event resize
+	window.addEventListener('resize', function(){
+		console.log('window resize')
+		renderer.render(graph)
+	}, false)
 </script></body>

@@ -1,0 +1,278 @@
+var Dataflow	= Dataflow	|| {}
+
+Dataflow.Renderer	= function(){
+	var renderer	= this;
+
+
+	var domElement	= document.createElement('div')
+	this.domElement	= domElement
+	domElement.classList.add('dataflowContainer')
+	domElement.style.width	= '100%'
+	domElement.style.height	= '100%'
+
+	// var svgElement	= document.createElement('svg')
+	var svgNS	= "http://www.w3.org/2000/svg";
+	var svgContainer= document.createElementNS(svgNS, 'svg')
+	this.svgContainer	= svgContainer
+	svgContainer.style.width	= '100%'
+	svgContainer.style.height	= '100%'
+	svgContainer.style.position	= 'absolute'
+	// svgContainer.style.zIndex	= '100'
+	this.domElement.appendChild(svgContainer)
+
+	var nodesContainer	= document.createElement('div')
+	this.nodesContainer	= nodesContainer
+	nodesContainer.style.width	= '100%'
+	nodesContainer.style.height	= '100%'
+	nodesContainer.style.position	= 'absolute'
+	this.domElement.appendChild(nodesContainer)
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Bind Events
+	//////////////////////////////////////////////////////////////////////////////////
+	document.addEventListener("dragstart", function( event ) {
+		console.log('document dragstart')
+	})
+	renderer.domElement.addEventListener('dragenter', function(event){
+		// console.log('dragenter', event)
+	}, false);
+	renderer.domElement.addEventListener('dragover', function(event){
+		event.preventDefault();
+		setNodePositionFromEvent(event)
+	}, false);
+	renderer.domElement.addEventListener('drop', function(event){
+		event.preventDefault();
+		event.stopPropagation(); 
+		setNodePositionFromEvent(event)
+	}, false);
+
+	function setNodePositionFromEvent(event){
+		var domId	= renderer.dataTransfer.domId
+		var offsetX	= renderer.dataTransfer.offsetX
+		var offsetY	= renderer.dataTransfer.offsetY
+
+		var domElement	= document.querySelector('#'+domId)
+		var nodeId	= parseInt(domElement.dataset.nodeId)
+		var node	= graph.getNodeById(nodeId)
+
+		var boundingBox	= domElement.getBoundingClientRect()
+
+		node.x	= (event.x-offsetX+boundingBox.width /2) / window.innerWidth
+		node.y	= (event.y-offsetY+boundingBox.height/2) / window.innerHeight
+
+		// rerender to get the new position
+		renderer.render(graph)	
+	}
+}
+Dataflow.Renderer.prototype.render	= function(graph){
+	var renderer	= this
+
+	graph.nodes.forEach(function(node){
+		renderer._updateNodeElement(graph, node)
+	})
+
+	this.renderNodes(graph)
+	this.renderSvg(graph)
+}
+
+Dataflow.Renderer.prototype.renderNodes	= function(graph){
+	var renderer	= this
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		set position of all domElements for graph.nodes
+	//////////////////////////////////////////////////////////////////////////////////
+	var container	= this.nodesContainer
+	var containerBox= container.getBoundingClientRect()
+	graph.nodes.forEach(function(node){
+		var domElement	= node.domElement
+		var boundingBox	= domElement.getBoundingClientRect()
+
+		var x	= containerBox.width  * node.x - boundingBox.width /2
+		var y	= containerBox.height * node.y - boundingBox.height/2
+
+		domElement.style.left	= x+'px'
+		domElement.style.top	= y+'px'
+
+		container.appendChild(domElement)
+	})
+}
+
+
+Dataflow.Renderer.prototype.renderSvg	= function(graph){
+	var renderer	= this
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Comment								//
+	//////////////////////////////////////////////////////////////////////////////////
+	var svgUtils	= new Dataflow.Renderer.SvgUtils(this.svgContainer)
+	svgUtils.clear()	
+	// svgUtils.drawLine(0, 0, 500, 500)
+
+	graph.links.forEach(function(link){
+		// compute x1, y1
+		var node	= link.output.node
+		var domElement	= node.domElement.querySelector('.output-'+link.output.uuid)
+		var boundingBox	= domElement.getBoundingClientRect()
+		var x1		= boundingBox.right
+		var y1		= boundingBox.top + boundingBox.height/2
+
+		// compute x2,y2
+		var node	= link.input.node
+		var domElement	= node.domElement.querySelector('.input-'+link.input.uuid)
+		var boundingBox	= domElement.getBoundingClientRect()
+		var x2		= boundingBox.left
+		var y2		= boundingBox.top + boundingBox.height/2
+
+		// actual drawLine
+		svgUtils.drawLine(x1,y1,x2,y2)
+	})
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+//		Comment								//
+//////////////////////////////////////////////////////////////////////////////////
+
+
+
+Dataflow.Renderer.prototype._updateNodeElement = function(graph, node){
+	var renderer	= this
+
+	// honor .needsUpdate
+	if( node.needsUpdate === false )	return
+	node.needsUpdate	= false
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Comment								//
+	//////////////////////////////////////////////////////////////////////////////////
+	var nodeEl	= document.createElement('div')
+	node.domElement	= nodeEl
+
+	nodeEl.classList.add('node')
+	nodeEl.id	= 'node-'+node.id
+	nodeEl.dataset.nodeId	= node.id
+	nodeEl.setAttribute('draggable', 'true')
+
+	var titleEl	= document.createElement('div')	
+	titleEl.classList.add('title')
+	titleEl.innerHTML	= node.title
+	nodeEl.appendChild(titleEl)
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		handle ioMenu
+	//////////////////////////////////////////////////////////////////////////////////
+
+	function onRemoveAllLinks(links){
+		// dusplicate links list and then detach and remove all links
+		links.slice().forEach(function(link){
+			link.detach()
+			graph.removeLink(link)
+		})
+		// render the graph
+		renderer.render(graph)	
+	}
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Outputs
+	//////////////////////////////////////////////////////////////////////////////////
+	var inputsEl	= document.createElement('div')
+	inputsEl.classList.add('inputs')
+	nodeEl.appendChild(inputsEl)
+
+	node._inputs.forEach(function(input){
+		var inputEl	= document.createElement('div')
+		inputEl.classList.add('input')
+		inputEl.classList.add('input-'+input.uuid)
+		inputEl.innerHTML	= '- '+input.label
+		inputsEl.appendChild(inputEl)
+
+		// add a contextMenu
+		var ioContextMenuOptions	= {
+			'removeAllLinks'	: 'Remove all links Input',
+		}
+		var ioContextMenu	= new Dataflow.ContextMenu(ioContextMenuOptions, inputEl, function(value){
+			if( value === 'removeAllLinks' )	onRemoveAllLinks(input.links)
+		})
+		console.log('menuElement', ioContextMenu.menuElement)
+		inputEl.appendChild(ioContextMenu.menuElement)
+	})
+
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Inputs
+	//////////////////////////////////////////////////////////////////////////////////
+	var outputsEl	= document.createElement('div')
+	outputsEl.classList.add('outputs')
+	nodeEl.appendChild(outputsEl)
+
+	node._outputs.forEach(function(output){
+		var outputEl	= document.createElement('div')
+		outputEl.setAttribute('draggable', 'true')
+		outputEl.classList.add('output')
+		outputEl.classList.add('output-'+output.uuid)
+
+		outputEl.innerHTML	= output.label + ' -'
+		outputsEl.appendChild(outputEl)
+		var ioContextMenuOptions	= {
+			'removeAllLinks'	: 'Remove all links Output',
+		}
+
+		// add a contextMenu
+		var ioContextMenu	= new Dataflow.ContextMenu(ioContextMenuOptions, outputEl, function(value){
+			if( value === 'removeAllLinks' )	onRemoveAllLinks(output.links)
+		})
+		outputEl.appendChild(ioContextMenu.menuElement)
+
+
+		outputEl.addEventListener('dragstart', function(event){
+			console.log('drag from output')
+			event.stopPropagation()
+			event.dataTransfer.effectAllowed = 'move';
+
+			var dataTransfer	= {}
+			renderer.dataTransfer	= dataTransfer
+		}, true)
+
+	})
+
+
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//		Comment								//
+	//////////////////////////////////////////////////////////////////////////////////
+	
+	nodeEl.addEventListener('dragstart', onNodeDragStart, true);
+	function onNodeDragStart(event){
+// return
+		var domElement	= this;
+		console.log('dragstart', event)
+		// console.log('offsetX', event.offsetX, event.offsetY)
+		// event.dataTransfer.dropEffect	= 'move';
+		event.dataTransfer.effectAllowed = 'move';
+
+		event.stopPropagation();
+
+		var dataTransfer	= {}
+		renderer.dataTransfer	= dataTransfer
+		dataTransfer.domId	= domElement.id
+		dataTransfer.offsetX	= event.offsetX
+		dataTransfer.offsetY	= event.offsetY
+
+		// put a empty image as dragIcon (cache the image too)
+		var cache		= Dataflow.Renderer;
+		if( cache.dragIcon ){
+			var dragIcon	= cache.dragIcon
+			event.dataTransfer.setDragImage(dragIcon, 20/2, 20/2);
+		}else{
+			var canvas	= document.createElement('canvas')
+			canvas.width	= canvas.height	= 20
+			var dragIcon	= document.createElement('img');
+			dragIcon.src	= canvas.toDataURL();
+			cache.dragIcon	= dragIcon
+			event.dataTransfer.setDragImage(dragIcon, 20/2, 20/2);
+		}		
+	}
+}
+
+
+
+
+

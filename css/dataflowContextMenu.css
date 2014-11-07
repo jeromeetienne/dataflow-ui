@@ -1,0 +1,30 @@
+
+.dataflowContainer .contextMenu {
+	position	: absolute;
+	z-index		: 1;
+
+	background-color: rgba(64,64,64,0.5);
+	border		: 1px solid #808080;
+
+	/* unselectable*/
+	-moz-user-select	: none;
+	-webkit-user-select	: none;
+	-ms-user-select		: none;
+	-o-user-select		: none;
+	user-select		: none;
+}
+.dataflowContainer .contextMenu ul{
+	margin		: 0px;
+	padding		: 0px;
+	list-style	: none;
+	list-style-type	: none;
+}
+.dataflowContainer .contextMenu li{
+	padding		: 8px;
+	padding-left	: 15px;
+	padding-right	: 15px;
+}
+.dataflowContainer .contextMenu li:hover {
+	background-color:#404040;
+}
+
