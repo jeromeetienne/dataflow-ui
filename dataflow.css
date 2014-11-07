@@ -9,31 +9,36 @@
 	-ms-user-select: none;
 	user-select: none;
 
-	background-color: #222;
+	background-color: #333;
+
 }
 .node {
 	position: absolute;
-	background-color: #444;
+	background-color: #222;
+	border: 1px solid #555;
 
 	color: #aaa;
 
 	padding: 5px;
-	border-radius: 3px;
+	border-radius: 10px;
 	
 
-	min-width: 150px;
+	min-width: 200px;
 }
-.node .title {
+.node .title { 
 	text-align	: center;
+	/*font-weight	: bold;*/
+	
+	padding-bottom	: 5px;
 	margin-bottom	: 5px;
-	border-bottom	: #888 solid 1px;
+	/*border-bottom	: #888 solid 1px;*/
 
 }
 .node .inputs {
-	font-size	: 60%;
+	font-size	: 70%;
 	float		: left;
 }
 .node .outputs {
-	font-size	: 60%;
+	font-size	: 70%;
 	float		: right;
 }
