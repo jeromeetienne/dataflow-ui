@@ -36,14 +36,14 @@ Dataflow.Renderer	= function(){
 	renderer.domElement.addEventListener('dragover', function(event){
 		// event.stopPropagation(); 
 		event.preventDefault();
-		// setNodePositionFromEvent(event)
+		setNodePositionFromEvent(event)
 	}, false);
 	renderer.domElement.addEventListener('drop', function(event){
 
 		event.stopPropagation(); 
 		event.preventDefault();
 
-		// setNodePositionFromEvent(event)
+		setNodePositionFromEvent(event)
 	}, false);
 
 	function setNodePositionFromEvent(event){
@@ -124,8 +124,8 @@ console.log('updateNode', node.title)
 		var domElement	= this;
 		console.log('dragstart', event)
 		console.log('offsetX', event.offsetX, event.offsetY)
-		event.dataTransfer.dropEffect = 'move';
-		event.dataTransfer.effectAllowed = 'all';
+		// event.dataTransfer.dropEffect	= 'move';
+		event.dataTransfer.effectAllowed = 'move';
 
 		event.stopPropagation();
 
@@ -138,20 +138,22 @@ console.log('updateNode', node.title)
 		dragWithCustomImage(event)
 
 		function dragWithCustomImage(event) {
-			var canvas = document.createElementNS("http://www.w3.org/1999/xhtml","canvas");
-			canvas.width = canvas.height = 20;
+			var canvas	= document.createElement('canvas')
+			canvas.width	= 20
+			canvas.height	= 20
 
-			var ctx = canvas.getContext("2d");
+			var ctx = canvas.getContext('2d');
 			ctx.lineWidth = 4;
 			ctx.moveTo( 0,  0);
 			ctx.lineTo(20, 20);
 			ctx.moveTo( 0, 20);
 			ctx.lineTo(20,  0);
 			ctx.strokeStyle = '#FFF';
-			ctx.stroke();
+			// ctx.stroke();
 
 			var dragIcon = document.createElement('img');
 			dragIcon.src = canvas.toDataURL();
+			// dragIcon.src	= 'google_logo_small.png'
 			event.dataTransfer.setDragImage(dragIcon, 20/2, 20/2);
 		}
 	}, false);
