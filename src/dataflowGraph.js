@@ -9,6 +9,42 @@ Dataflow.Graph	= function(){
 }
 
 //////////////////////////////////////////////////////////////////////////////////
+//		toJSON/fromJSON
+//////////////////////////////////////////////////////////////////////////////////
+
+Dataflow.Graph.prototype.toJSON = function(){
+	var graph	= this
+	var output	= {}
+
+	output.nodes	= []
+	graph.nodes.forEach(function(node){
+		output.nodes.push( node.toJSON() )
+	})
+
+	output.links	= []
+	graph.links.forEach(function(link){
+		output.links.push( link.toJSON() )
+	})
+	return output
+}
+
+Dataflow.Graph.fromJSON = function(output){
+
+	var graph	= new Dataflow.Graph()
+	output.nodes.forEach(function(nodeJson){
+		var node	= Dataflow.Node.fromJSON(nodeJson)
+		graph.addNode( node )
+	})
+
+	output.links.forEach(function(linkJson){
+		var link	= Dataflow.Link.fromJSON(linkJson, graph)
+		graph.addLink( link )
+	})
+
+	return graph
+};
+
+//////////////////////////////////////////////////////////////////////////////////
 //		Comment								//
 //////////////////////////////////////////////////////////////////////////////////
 /**

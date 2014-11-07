@@ -46,6 +46,8 @@ Dataflow.Renderer	= function(){
 			onDraggingNode(event)
 		}else if( dataTransfer.type === 'draggingOutput' ){
 			onDraggingOutput(event)
+		}else if( dataTransfer.type === 'draggingInput' ){
+			onDraggingInput(event)
 		}
 	}, false);
 	renderer.domElement.addEventListener('drop', function(event){
@@ -58,13 +60,34 @@ Dataflow.Renderer	= function(){
 			renderer.dataTransfer	= {}
 		}else if( dataTransfer.type === 'draggingOutput' ){
 			renderer.render(graph)
+		}else if( dataTransfer.type === 'draggingInput' ){
+			renderer.render(graph)
 		}
 
 	}, false);
 
+	function onDraggingInput(event){
+		// render to get the new position
+		renderer.render(graph)	
+
+		var dataTransfer= renderer.dataTransfer
+		var inputUUID	= dataTransfer.inputUUID
+		var input	= graph.findInputByUUID(inputUUID)
+		// compute x1, y1
+		var node	= input.node
+		var domElement	= node.domElement.querySelector('.input-'+input.uuid)
+		var boundingBox	= domElement.getBoundingClientRect()
+		var x2		= boundingBox.left
+		var y2		= boundingBox.top + boundingBox.height/2
+
+		// compute x2,y2
+		var x1		= event.x
+		var y1		= event.y
+		// actual drawLine
+		renderer.svgUtils.drawLine(x1,y1,x2,y2, 'cyan')
+	}
+
 	function onDraggingOutput(event){
-
-
 		// render to get the new position
 		renderer.render(graph)	
 

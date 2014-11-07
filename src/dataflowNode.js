@@ -24,6 +24,50 @@ Dataflow.Node	= function(){
 
 Dataflow.Node.Counter	= 0
 
+//////////////////////////////////////////////////////////////////////////////////
+//		Comment								//
+//////////////////////////////////////////////////////////////////////////////////
+
+Dataflow.Node.prototype.toJSON = function(){
+	var node	= this
+	var data	= {}
+	data.title	= node.title
+	data.uuid	= node.uuid
+	data.x		= node.x
+	data.y		= node.y
+
+	data.inputs	= []
+	node._inputs.forEach(function(input){
+		data.inputs.push( input.toJSON() )
+	})
+
+	data.outputs	= []
+	node._outputs.forEach(function(output){
+		data.outputs.push( output.toJSON() )
+	})
+
+	return data
+}
+
+Dataflow.Node.fromJSON = function(data){
+	var node	= new Dataflow.Node()
+	node.title	= data.title
+	node.uuid	= data.uuid
+	node.x		= data.x
+	node.y		= data.y
+
+	data.inputs.forEach(function(inputJSON){
+		node.addInput( Dataflow.Input.fromJSON( inputJSON, node) )
+	})
+	data.outputs.forEach(function(outputJSON){
+		node.addOutput( Dataflow.Output.fromJSON( outputJSON, node) )
+	})
+	return node
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+//		Comment								//
+//////////////////////////////////////////////////////////////////////////////////
 Dataflow.Node.prototype.findInputByLabel = function(label){
 	for(var i = 0; i < this._inputs.length; i++){
 		var input	= this._inputs[i]
