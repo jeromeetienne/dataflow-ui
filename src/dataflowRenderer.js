@@ -126,6 +126,34 @@ Dataflow.Renderer	= function(){
 		renderer.render(graph)	
 	}
 }
+
+//////////////////////////////////////////////////////////////////////////////////
+//		Comment								//
+//////////////////////////////////////////////////////////////////////////////////
+
+Dataflow.Renderer.prototype.getDragIcon = function() {
+	var renderer	= this
+
+	// put a empty image as dragIcon (cache the image too)
+	var cache		= Dataflow.Renderer;
+	if( cache._dragIcon ){
+		var dragIcon	= cache.dragIcon
+		return dragIcon
+		event.dataTransfer.setDragImage(dragIcon, 0, 0);
+	}
+
+	var canvas	= document.createElement('canvas')
+	canvas.width	= canvas.height	= 20
+	var dragIcon	= document.createElement('img');
+	dragIcon.src	= canvas.toDataURL();
+	cache._dragIcon	= dragIcon
+	return dragIcon
+};
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//		Comment								//
+//////////////////////////////////////////////////////////////////////////////////
 Dataflow.Renderer.prototype.render	= function(graph){
 	var renderer	= this
 
@@ -371,18 +399,20 @@ Dataflow.Renderer.prototype._updateNodeElement = function(graph, node){
 		dataTransfer.offsetY	= event.offsetY
 
 		// put a empty image as dragIcon (cache the image too)
-		var cache		= Dataflow.Renderer;
-		if( cache.dragIcon ){
-			var dragIcon	= cache.dragIcon
-			event.dataTransfer.setDragImage(dragIcon, 20/2, 20/2);
-		}else{
-			var canvas	= document.createElement('canvas')
-			canvas.width	= canvas.height	= 20
-			var dragIcon	= document.createElement('img');
-			dragIcon.src	= canvas.toDataURL();
-			cache.dragIcon	= dragIcon
-			event.dataTransfer.setDragImage(dragIcon, 20/2, 20/2);
-		}		
+		// var cache		= Dataflow.Renderer;
+		// if( cache.dragIcon ){
+		// 	var dragIcon	= cache.dragIcon
+		// 	event.dataTransfer.setDragImage(dragIcon, 0, 0);
+		// }else{
+		// 	var canvas	= document.createElement('canvas')
+		// 	canvas.width	= canvas.height	= 20
+		// 	var dragIcon	= document.createElement('img');
+		// 	dragIcon.src	= canvas.toDataURL();
+		// 	cache.dragIcon	= dragIcon
+			
+		// }		
+		// var dragIcon	= renderer.getDragIcon()
+		// event.dataTransfer.setDragImage(dragIcon, 0, 0);
 	}
 }
 
